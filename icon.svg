@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="104" fill="#10172a"/>
+  <path d="M112 132h288v220H112z" fill="#1d2945" stroke="#56e6c1" stroke-width="20"/>
+  <path d="M150 180h212v104H150z" fill="#f7f4e8"/>
+  <path d="M181 326h70M291 326h40" stroke="#ffca57" stroke-width="22" stroke-linecap="round"/>
+  <text x="256" y="256" text-anchor="middle" font-family="Arial,sans-serif" font-size="86" font-weight="800" fill="#10172a">A+</text>
+</svg>
