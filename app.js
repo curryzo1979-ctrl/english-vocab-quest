@@ -91,9 +91,9 @@ const SENTENCE_QUESTIONS = [
   {id:"gs-13",unit:"時刻と日常",ja:"あなたは7時30分に起きます。",answer:"You get up at 7:30."},
   {id:"gs-14",unit:"時刻と日常",ja:"あなたは7時30分に起きますか？",answer:"Do you get up at 7:30?"},
   {id:"gs-15",unit:"時刻と日常",ja:"あなたは何時に起きますか？",answer:"What time do you get up?"},
-  {id:"gs-16",unit:"時刻と日常",ja:"あなたは朝食を食べますか？",answer:"Do you eat breakfast?"},
+  {id:"gs-16",unit:"時刻と日常",ja:"あなたは朝食を食べますか？",answer:"Do you eat breakfast?",alternatives:["Do you have breakfast?"]},
   {id:"gs-17",unit:"時刻と日常",ja:"あなたは何時に家を出ますか？",answer:"What time do you leave home?"},
-  {id:"gs-18",unit:"時刻と日常",ja:"私は午後10時に寝ます。",answer:"I go to bed at 10:00."},
+  {id:"gs-18",unit:"時刻と日常",ja:"私は午後10時に寝ます。",answer:"I go to bed at 10:00.",alternatives:["I go to bed at 10 p.m.","I go to bed at 22:00."]},
   {id:"gs-19",unit:"過去形",ja:"あなたは夏休みの間、何をしましたか？",answer:"What did you do during the summer vacation?"},
   {id:"gs-20",unit:"過去形",ja:"私は塾へ行きました。",answer:"I went to juku."},
   {id:"gs-21",unit:"過去形",ja:"それはどうでしたか？",answer:"How was it?"},
@@ -102,7 +102,7 @@ const SENTENCE_QUESTIONS = [
   {id:"gs-24",unit:"会話",ja:"私は7時に起きます。",answer:"I get up at 7:00."},
   {id:"gs-25",unit:"会話",ja:"私は土曜日にたいていアニメを見ます。",answer:"I usually watch anime on Saturday."},
   {id:"gs-26",unit:"会話",ja:"私はよく家族と公園へ行きます。",answer:"I often go to the park with my family."},
-  {id:"gs-27",unit:"会話",ja:"私は10時にときどきお風呂に入ります。",answer:"I sometimes take a bath at 10."},
+  {id:"gs-27",unit:"会話",ja:"私は10時にときどきお風呂に入ります。",answer:"I sometimes take a bath at 10.",alternatives:["Sometimes I take a bath at 10.","I take a bath at 10 sometimes."]},
   {id:"gs-28",unit:"会話",ja:"私はアニメに興味があります。",answer:"I'm interested in anime.",alternatives:["I am interested in anime."]}
 ].map(q=>({...q,category:"grammar",answers:[q.answer,...(q.alternatives||[])],words:q.answer.replace(/[?.!,]/g,"").split(/\s+/)}));
 
@@ -118,10 +118,18 @@ const $ = s => document.querySelector(s);
 const app = $("#app");
 
 function normalize(s){return s.toLowerCase().trim().replace(/[．。,.]/g,"").replace(/[・／]/g,"/").replace(/\s*\/\s*/g,"/").replace(/\s+/g," ")}
+const HOUR_WORDS={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+function normalizeTimes(s){
+  const hour="(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|[0-9]{1,2})";
+  return s
+    .replace(new RegExp(`\\bat (${hour})\\s+(?:o'clock|oclock|thirty)\\b`,"g"),(match,h)=>`at ${HOUR_WORDS[h]||Number(h)}:${/thirty$/.test(match)?"30":"00"}`)
+    .replace(new RegExp(`\\bat (${hour})(?![\\w:])`,"g"),(_,h)=>`at ${HOUR_WORDS[h]||Number(h)}:00`)
+    .replace(/\bat 0([1-9]):([0-5][0-9])\b/g,"at $1:$2");
+}
 function normalizeSentence(s){
-  return String(s).toLowerCase().trim().replace(/[’]/g,"'")
-    .replace(/\bi'm\b/g,"i am").replace(/\bdon't\b/g,"do not").replace(/\bcan't\b/g,"cannot")
-    .replace(/[^a-z0-9:\s]/g,"").replace(/\s+/g," ");
+  const expanded=String(s).toLowerCase().trim().replace(/[’]/g,"'")
+    .replace(/\bi'm\b/g,"i am").replace(/\bdon't\b/g,"do not").replace(/\bcan't\b/g,"cannot");
+  return normalizeTimes(expanded.replace(/[^a-z0-9:'\s]/g,"").replace(/\s+/g," "));
 }
 function terminalMark(s){return String(s).trim().match(/[.?]$/)?.[0]||""}
 function sentenceMatches(value,answer){
@@ -140,6 +148,12 @@ function editDistance(a,b){
   return row[y.length];
 }
 function closestAnswer(value,answers){return [...answers].sort((a,b)=>editDistance(value,a)-editDistance(value,b))[0]}
+function comparableTimeAnswer(value,answer){
+  const time=/\bat\s+(?:(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})(?::[0-5]\d|\s+(?:o['’]?clock|oclock|thirty))?)(?:\s+[ap]\.m\.)?/i;
+  const typed=value.match(time),expected=answer.match(time);
+  if(!typed||!expected||normalizeSentence(typed[0])!==normalizeSentence(expected[0]))return answer;
+  return answer.replace(expected[0],typed[0]);
+}
 function errorMarkup(value,answer){
   const typed=diffTokens(value),correct=diffTokens(answer),rows=typed.length+1,cols=correct.length+1;
   const dp=Array.from({length:rows},()=>Array(cols).fill(0));
@@ -292,7 +306,7 @@ function grade(value,button){
   const sentenceError=game.mode==="sentence"&&!ok;
   const comparedAnswer=sentenceError?closestAnswer(value,q.answers):answerDisplay;
   const feedbackBody=sentenceError
-    ?`<div class="feedback-title">おしい！</div><div class="answer-comparison"><span>あなたの答え</span><p>${errorMarkup(value,comparedAnswer)}</p><span>正しい文章</span><p class="correct-sentence">${esc(comparedAnswer)}</p></div>`
+    ?`<div class="feedback-title">おしい！</div><div class="answer-comparison"><span>あなたの答え</span><p>${errorMarkup(value,comparableTimeAnswer(value,comparedAnswer))}</p><span>正しい文章</span><p class="correct-sentence">${esc(comparedAnswer)}</p></div>`
     :`${ok?"正解！ええやん ✨":"おしい！"}<small>答え：${esc(answerDisplay)}</small>`;
   const zone=$("#answer-zone"); zone.insertAdjacentHTML("beforeend",`<div class="feedback ${ok?"good":"bad"}">${feedbackBody}</div><div class="quiz-actions"><button class="secondary" id="speak">🔊 発音</button><button class="primary" id="next">${nextLabel}</button></div>`);
   $("#speak").onclick=()=>speak(spoken);
