@@ -123,6 +123,36 @@ function normalizeSentence(s){
     .replace(/\bi'm\b/g,"i am").replace(/\bdon't\b/g,"do not").replace(/\bcan't\b/g,"cannot")
     .replace(/[^a-z0-9:\s]/g,"").replace(/\s+/g," ");
 }
+function terminalMark(s){return String(s).trim().match(/[.?]$/)?.[0]||""}
+function sentenceMatches(value,answer){
+  return terminalMark(value)===terminalMark(answer)&&terminalMark(answer)!==""&&normalizeSentence(value)===normalizeSentence(answer);
+}
+function diffTokens(s){return String(s).trim().replace(/[’]/g,"'").match(/[A-Za-z]+(?:'[A-Za-z]+)?|\d+(?::\d+)?|[?.!,]|[^\s]/g)||[]}
+function editDistance(a,b){
+  const x=normalizeSentence(a),y=normalizeSentence(b),row=Array.from({length:y.length+1},(_,i)=>i);
+  for(let i=1;i<=x.length;i++){
+    let diagonal=row[0];row[0]=i;
+    for(let j=1;j<=y.length;j++){
+      const above=row[j],cost=x[i-1]===y[j-1]?0:1;
+      row[j]=Math.min(row[j]+1,row[j-1]+1,diagonal+cost);diagonal=above;
+    }
+  }
+  return row[y.length];
+}
+function closestAnswer(value,answers){return [...answers].sort((a,b)=>editDistance(value,a)-editDistance(value,b))[0]}
+function errorMarkup(value,answer){
+  const typed=diffTokens(value),correct=diffTokens(answer),rows=typed.length+1,cols=correct.length+1;
+  const dp=Array.from({length:rows},()=>Array(cols).fill(0));
+  for(let i=1;i<rows;i++)for(let j=1;j<cols;j++)dp[i][j]=typed[i-1].toLowerCase()===correct[j-1].toLowerCase()?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+  const matchedTyped=new Set(),matchedCorrect=new Set();let i=typed.length,j=correct.length;
+  while(i&&j){
+    if(typed[i-1].toLowerCase()===correct[j-1].toLowerCase()){matchedTyped.add(i-1);matchedCorrect.add(j-1);i--;j--}
+    else if(dp[i-1][j]>=dp[i][j-1])i--;else j--;
+  }
+  const rendered=typed.map((token,index)=>matchedTyped.has(index)?esc(token):`<span class="wrong-part">${esc(token)}</span>`).join(" ").replace(/\s+([?.!,])/g,"$1");
+  const missing=correct.filter((_,index)=>!matchedCorrect.has(index));
+  return `${rendered||'<span class="wrong-part">未入力</span>'}${missing.length?` <span class="wrong-part missing-part">［不足：${missing.map(esc).join(" ")}］</span>`:""}`;
+}
 function verbForms(q){
   const [present,past=""] = q.en.split(" / ");
   const presentAnswers=[]; const pastAnswers=[];
@@ -200,13 +230,13 @@ function renderQuestion(){
 }
 
 function inputHTML(q){
-  if(game.mode==="sentence") return `<form class="answer-form" id="answer-form"><input class="answer-input sentence-input" id="answer" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="英文を入力" aria-label="英作文の答え"><button class="primary" type="submit">答える</button></form>`;
+  if(game.mode==="sentence") return `<form class="answer-form" id="answer-form"><input class="answer-input sentence-input" id="answer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="英文を入力（. や ? まで）" aria-label="英作文の答え"><button class="primary" type="submit">答える</button></form>`;
   if(game.mode==="presentToPast"||game.mode==="pastToPresent"){
     const target=game.mode==="presentToPast"?"過去形":"現在形";
-    return `<form class="answer-form" id="answer-form"><label class="direct-label" for="answer">${target}</label><input class="answer-input" id="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${target}を入力" aria-label="${target}の答え"><button class="primary" type="submit">答える</button></form>`;
+    return `<form class="answer-form" id="answer-form"><label class="direct-label" for="answer">${target}</label><input class="answer-input" id="answer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="${target}を入力" aria-label="${target}の答え"><button class="primary" type="submit">答える</button></form>`;
   }
-  if(q.category!=="verbs") return `<form class="answer-form" id="answer-form"><input class="answer-input" id="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="英語を入力" aria-label="英語の答え"><button class="primary" type="submit">答える</button></form>`;
-  return `<form class="answer-form" id="answer-form"><div class="verb-inputs"><label><span>現在形</span><input class="answer-input" id="answer-present" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="例：see"></label><label><span>過去形</span><input class="answer-input" id="answer-past" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="例：saw"></label></div><button class="primary" type="submit">2つとも答える</button></form>`;
+  if(q.category!=="verbs") return `<form class="answer-form" id="answer-form"><input class="answer-input" id="answer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="英語を入力" aria-label="英語の答え"><button class="primary" type="submit">答える</button></form>`;
+  return `<form class="answer-form" id="answer-form"><div class="verb-inputs"><label><span>現在形</span><input class="answer-input" id="answer-present" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="例：see"></label><label><span>過去形</span><input class="answer-input" id="answer-past" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="例：saw"></label></div><button class="primary" type="submit">2つとも答える</button></form>`;
 }
 
 function choiceHTML(q){
@@ -240,7 +270,8 @@ function grade(value,button){
   let ok;
   if(game.mode==="choice") ok=value===q.id;
   else if(game.mode==="grammarChoice") ok=normalizeSentence(value)===normalizeSentence(q.answer);
-  else if(game.mode==="order"||game.mode==="sentence") ok=q.answers.some(answer=>normalizeSentence(answer)===normalizeSentence(value));
+  else if(game.mode==="order") ok=q.answers.some(answer=>normalizeSentence(answer)===normalizeSentence(value));
+  else if(game.mode==="sentence") ok=q.answers.some(answer=>sentenceMatches(value,answer));
   else if(game.mode==="presentToPast") ok=verbForms(q).pastAnswers.some(a=>normalize(a)===normalize(value));
   else if(game.mode==="pastToPresent") ok=verbForms(q).presentAnswers.some(a=>normalize(a)===normalize(value));
   else if(q.category==="verbs"){
@@ -258,7 +289,12 @@ function grade(value,button){
   const forms=q.category==="verbs"?verbForms(q):null;
   const answerDisplay=game.mode==="grammarChoice"||game.mode==="order"||game.mode==="sentence"?q.answer:game.mode==="presentToPast"?forms.past:game.mode==="pastToPresent"?forms.present:q.en;
   const spoken=game.mode==="grammarChoice"||game.mode==="order"||game.mode==="sentence"?q.answer:game.mode==="presentToPast"?forms.past.split(" / ")[0]:game.mode==="pastToPresent"?forms.present:q.answers[0].replace(/\s*\/.*$/, "");
-  const zone=$("#answer-zone"); zone.insertAdjacentHTML("beforeend",`<div class="feedback ${ok?"good":"bad"}">${ok?"正解！ええやん ✨":"おしい！"}<small>答え：${esc(answerDisplay)}</small></div><div class="quiz-actions"><button class="secondary" id="speak">🔊 発音</button><button class="primary" id="next">${nextLabel}</button></div>`);
+  const sentenceError=game.mode==="sentence"&&!ok;
+  const comparedAnswer=sentenceError?closestAnswer(value,q.answers):answerDisplay;
+  const feedbackBody=sentenceError
+    ?`<div class="feedback-title">おしい！</div><div class="answer-comparison"><span>あなたの答え</span><p>${errorMarkup(value,comparedAnswer)}</p><span>正しい文章</span><p class="correct-sentence">${esc(comparedAnswer)}</p></div>`
+    :`${ok?"正解！ええやん ✨":"おしい！"}<small>答え：${esc(answerDisplay)}</small>`;
+  const zone=$("#answer-zone"); zone.insertAdjacentHTML("beforeend",`<div class="feedback ${ok?"good":"bad"}">${feedbackBody}</div><div class="quiz-actions"><button class="secondary" id="speak">🔊 発音</button><button class="primary" id="next">${nextLabel}</button></div>`);
   $("#speak").onclick=()=>speak(spoken);
   $("#next").onclick=()=>advanceGame();
 }
