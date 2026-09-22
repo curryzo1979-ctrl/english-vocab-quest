@@ -67,6 +67,12 @@ h1{margin:0;font-size:clamp(1.75rem,7vw,2.5rem);line-height:1.15;letter-spacing:
 .feedback{margin-top:14px;padding:15px;border-radius:15px;text-align:left;line-height:1.5;font-weight:800}
 .feedback.good{background:#123d37;color:#baffec}.feedback.bad{background:#421e2b;color:#ffc0c7}
 .feedback small{display:block;font-weight:600;opacity:.85;margin-top:4px}
+.feedback-title{font-size:1.05rem;margin-bottom:10px}
+.answer-comparison{display:grid;gap:5px}.answer-comparison>span{color:#ffb6bf;font-size:.72rem;font-weight:900;letter-spacing:.06em}
+.answer-comparison p{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:#f7f4e8;color:#172033;font-size:1rem;line-height:1.65;overflow-wrap:anywhere}
+.answer-comparison .correct-sentence{margin-bottom:0;background:#e8fff8;color:#123d37}
+.wrong-part{color:#d90024;font-weight:950;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.missing-part{display:inline-block;text-decoration:none}
 .quiz-actions{display:flex;gap:10px;margin-top:14px}.quiz-actions>*{margin:0;flex:1}
 .round-badge{flex:0 0 auto;color:var(--yellow);font-weight:900;font-size:.78rem;white-space:nowrap}
 .result-hero{text-align:center;padding:24px 0 10px}.result-emoji{font-size:4rem}.score{font-size:3.3rem;font-weight:950;color:var(--yellow);line-height:1}.score small{font-size:1.2rem;color:var(--muted)}
