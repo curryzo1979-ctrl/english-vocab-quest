@@ -41,6 +41,7 @@ h1{margin:0;font-size:clamp(1.75rem,7vw,2.5rem);line-height:1.15;letter-spacing:
 .quiz-card{background:linear-gradient(160deg,#1d2a48,#151e33);border:1px solid #354564;border-radius:26px;padding:24px 20px;box-shadow:var(--shadow);min-height:250px;display:flex;flex-direction:column;justify-content:center;text-align:center}
 .category{align-self:center;color:var(--mint);font-size:.78rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
 .prompt{font-size:clamp(1.75rem,8vw,2.45rem);font-weight:900;line-height:1.3;overflow-wrap:anywhere}
+.prompt.grammar-prompt{font-size:clamp(1.35rem,6vw,1.9rem)}
 .hint{color:var(--muted);font-size:.86rem;margin-top:12px;min-height:1.4em}
 .speak{margin:18px auto 0;border:1px solid #405273;background:#22304e;color:var(--text);border-radius:50%;width:48px;height:48px;font-size:1.3rem}
 .choices{display:grid;gap:10px;margin-top:14px}
@@ -53,6 +54,16 @@ h1{margin:0;font-size:clamp(1.75rem,7vw,2.5rem);line-height:1.15;letter-spacing:
 .verb-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.verb-inputs label span{display:block;color:var(--mint);font-weight:900;font-size:.82rem;margin:0 0 6px 4px;text-align:left}
 .answer-input{width:100%;border:2px solid #405273;background:#f7f4e8;color:#111827;border-radius:16px;padding:16px;font-size:1.1rem;font-weight:800;outline:none;text-align:center}
 .answer-input:focus{border-color:var(--mint);box-shadow:0 0 0 4px rgba(86,230,193,.12)}
+.sentence-input{text-align:left}
+.order-wrap{margin-top:14px}
+.order-label{margin:12px 4px 7px;color:var(--muted);font-size:.78rem;font-weight:900}
+.order-answer,.word-bank{display:flex;flex-wrap:wrap;align-content:flex-start;gap:9px;min-height:72px;padding:12px;border-radius:16px}
+.order-answer{background:#f7f4e8;border:2px solid var(--mint)}
+.word-bank{background:var(--panel);border:1px solid #354564}
+.word-chip{border:1px solid #4d628b;border-radius:11px;background:#263958;color:var(--text);padding:10px 13px;font-weight:900;box-shadow:0 3px 0 #111a2c}
+.order-answer .word-chip{background:#173e3a;border-color:#39bfa1;box-shadow:0 3px 0 #0d2523}
+.order-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.order-actions>*{margin:0}
 .feedback{margin-top:14px;padding:15px;border-radius:15px;text-align:left;line-height:1.5;font-weight:800}
 .feedback.good{background:#123d37;color:#baffec}.feedback.bad{background:#421e2b;color:#ffc0c7}
 .feedback small{display:block;font-weight:600;opacity:.85;margin-top:4px}
