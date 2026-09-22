@@ -1,7 +1,7 @@
 {
-  "name": "英単語クエスト",
-  "short_name": "英単語",
-  "description": "小6英単語トレーニング",
+  "name": "英語クエスト",
+  "short_name": "英語",
+  "description": "小6英語トレーニング",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#10172a",
