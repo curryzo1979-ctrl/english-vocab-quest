@@ -39,7 +39,8 @@ const raw = {
   ],
   verbs: [
     ["見る・会う","see / saw","see/saw"],["食べる","eat / ate","eat/ate"],["行く","go / went","go/went"],["楽しむ","enjoy / enjoyed","enjoy/enjoyed"],["訪れる","visit / visited","visit/visited"],["作る","make / made","make/made"],["勉強する","study / studied","study/studied"],["する","do / did","do/did"],
-    ["話す・おしゃべりする","talk / talked","talk/talked"],["歌う","sing / sang","sing/sang"],["料理する","cook / cooked","cook/cooked"],["（テレビ等をじっと）見る","watch / watched","watch/watched"],["遊ぶ・演奏する","play / played","play/played"],["練習する","practice / practiced","practice/practiced","practise / practised"],["計画する（nを重ねる）","plan / planned","plan/planned"],["〜である・いた（is/am/are）","be / was・were","be / was / were","be/was/were"]
+    ["話す・おしゃべりする","talk / talked","talk/talked"],["歌う","sing / sang","sing/sang"],["料理する","cook / cooked","cook/cooked"],["（テレビ等をじっと）見る","watch / watched","watch/watched"],["遊ぶ・演奏する","play / played","play/played"],["練習する","practice / practiced","practice/practiced","practise / practised"],["計画する（nを重ねる）","plan / planned","plan/planned"],["〜である・いた（is/am/are）","be / was・were","be / was / were","be/was/were"],
+    ["好き","like / liked"],["大好き・愛する","love / loved"],["持っている","have / had"],["欲しい","want / wanted"],["買う","buy / bought"],["準備する","prepare / prepared"],["登る","climb / climbed"],["踊る","dance / danced"],["描く","draw / drew"],["飲む","drink / drank"],["飛ぶ","fly / flew"],["手伝う・助ける","help / helped"],["読む","read / read"],["聴く","listen / listened"],["走る","run / ran"],["立つ","stand / stood"],["座る","sit / sat"],["話す・話しかける","speak / spoke"],["書く","write / wrote"],["泳ぐ","swim / swam"],["歩く","walk / walked"]
   ]
 };
 
@@ -191,7 +192,7 @@ function renderHome(){
   const grammarChoiceMode=setup.mode==="grammarChoice";
   const grammarSentenceMode=["order","sentence"].includes(setup.mode);
   const grammarMode=grammarChoiceMode||grammarSentenceMode;
-  const masteryCount=grammarChoiceMode?GRAMMAR_CHOICES.length:grammarSentenceMode?SENTENCE_QUESTIONS.length:directVerbMode?16:100;
+  const masteryCount=grammarChoiceMode?GRAMMAR_CHOICES.length:grammarSentenceMode?SENTENCE_QUESTIONS.length:directVerbMode?WORDS.filter(w=>w.category==="verbs").length:100;
   app.innerHTML=shell(`
     <h1>今日の10問、<br>サクッといこか。</h1>
     <p class="lead">単語${WORDS.length}問＋文法${GRAMMAR_CHOICES.length + SENTENCE_QUESTIONS.length}問。記録はこのスマホの中だけに保存されます。</p>
@@ -223,7 +224,7 @@ function startGame(weakOnly,mastery=false){
   let pool=grammarChoiceMode?GRAMMAR_CHOICES:grammarSentenceMode?SENTENCE_QUESTIONS:directVerbMode?WORDS.filter(w=>w.category==="verbs"):(mastery?WORDS:(weakOnly?weakest():WORDS.filter(w=>setup.category==="all"||w.category===setup.category)));
   if(!pool.length){toast("苦手単語はまだないで");return}
   const ranked=shuffle(pool).sort((a,b)=>((saved.stats[a.id]?.correct||0)-(saved.stats[a.id]?.wrong||0))-((saved.stats[b.id]?.correct||0)-(saved.stats[b.id]?.wrong||0)));
-  const masteryLimit=grammarChoiceMode||grammarSentenceMode?ranked.length:directVerbMode?16:100;
+  const masteryLimit=grammarChoiceMode||grammarSentenceMode||directVerbMode?ranked.length:100;
   const selected=ranked.slice(0,Math.min(mastery?masteryLimit:setup.count,ranked.length));
   game={questions:selected,index:0,correct:0,misses:[],roundMisses:[],answered:false,mode:setup.mode,mastery,round:1,total:selected.length,totalAnswers:0,totalWrong:0};
   renderQuestion();
